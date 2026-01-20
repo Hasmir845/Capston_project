@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Register() {
   const [fullName, setFullName] = useState('')
@@ -7,17 +8,14 @@ export default function Register() {
   const [userType, setUserType] = useState('')
   const [password, setPassword] = useState('')
   const navigate = useNavigate()
+  const { login } = useAuth()
 
   const handleRegister = (e) => {
     e.preventDefault()
     
     if (fullName && email && userType && password) {
-      // Store user info in localStorage
-      localStorage.setItem('userName', fullName)
-      localStorage.setItem('userEmail', email)
-      localStorage.setItem('userRole', userType)
+      login({ email, role: userType, name: fullName })
       
-      // Redirect based on user type
       if (userType === 'farmer') {
         navigate('/farmer')
       } else if (userType === 'consumer') {
@@ -83,7 +81,7 @@ export default function Register() {
           </button>
         </form>
         <p className="text-center mt-4 text-gray-600">
-          Already have an account? <a href="/login" className="text-blue-500 font-semibold hover:underline">Login</a>
+          Already have an account? <Link to="/login" className="text-blue-500 font-semibold hover:underline">Login</Link>
         </p>
       </div>
     </div>

@@ -1,23 +1,23 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import { useCart } from '../hooks/useCart'
 
-export default function Navbar({ userRole = null }) {
+export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const navigate = useNavigate()
-  const isLoggedIn = !!userRole
+  const { user, logout } = useAuth()
+  const { totals } = useCart()
+  const isLoggedIn = !!user
+  const role = user?.role
 
   const handleLogout = () => {
-    // Clear localStorage
-    localStorage.removeItem('userName')
-    localStorage.removeItem('userEmail')
-    localStorage.removeItem('userRole')
-    
-    // Redirect to login
+    logout()
     navigate('/login')
   }
 
   const getNavbarColor = () => {
-    switch(userRole) {
+    switch(role) {
       case 'farmer':
         return 'bg-green-700'
       case 'consumer':
@@ -30,11 +30,16 @@ export default function Navbar({ userRole = null }) {
   }
 
   const getRoleLinks = () => {
-    switch(userRole) {
+    switch(role) {
       case 'farmer':
         return [{ name: 'Dashboard', href: '/farmer' }]
       case 'consumer':
-        return [{ name: 'Home', href: '/consumer' }]
+        return [
+          { name: 'Home', href: '/' },
+          { name: 'My Dashboard', href: '/consumer' },
+          { name: 'My Orders', href: '/consumer/orders' },
+          { name: 'Cart', href: '/cart' }
+        ]
       case 'admin':
         return [{ name: 'Dashboard', href: '/admin' }]
       default:
@@ -72,11 +77,26 @@ export default function Navbar({ userRole = null }) {
                     {link.name}
                   </Link>
                 ))}
+
+                {role === 'consumer' && (
+                  <Link
+                    to="/cart"
+                    className="relative bg-white/15 hover:bg-white/25 transition px-3 py-2 rounded font-semibold"
+                    title="Cart"
+                  >
+                    Cart
+                    {totals.count > 0 && (
+                      <span className="ml-2 inline-flex items-center justify-center text-xs bg-red-500 text-white rounded-full px-2 py-0.5">
+                        {totals.count}
+                      </span>
+                    )}
+                  </Link>
+                )}
                 
                 {/* User Info */}
                 <div className="flex items-center gap-4 pl-4 border-l border-white border-opacity-30">
                   <span className="text-sm">
-                    {localStorage.getItem('userName') || 'User'}
+                    {user?.name || user?.email || 'User'}
                   </span>
                   <button 
                     onClick={handleLogout}
@@ -128,9 +148,18 @@ export default function Navbar({ userRole = null }) {
                     {link.name}
                   </Link>
                 ))}
+                {role === 'consumer' && (
+                  <Link
+                    to="/cart"
+                    className="hover:text-gray-200 transition py-2 font-semibold"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Cart {totals.count > 0 ? `(${totals.count})` : ''}
+                  </Link>
+                )}
                 <div className="pt-3 border-t border-white border-opacity-30 flex flex-col gap-3">
                   <span className="text-sm">
-                    {localStorage.getItem('userName') || 'User'}
+                    {user?.name || user?.email || 'User'}
                   </span>
                   <button 
                     onClick={handleLogout}
